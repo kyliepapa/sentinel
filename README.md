@@ -1,7 +1,12 @@
-<<<<<<< HEAD
 # IoT Sentinel
 
 IoT Sentinel is a small, defensive network-monitoring project. It discovers devices on a private local network that the project team owns or has permission to monitor.
+
+## Project goals
+
+The initial goal is to scan the local network, list the devices found, and let the user designate familiar or safe devices. A future feature will notify the user about new or unfamiliar devices and provide instructions for removing them from the network.
+
+The stretch goal is to add built-in tools for dealing with unfamiliar devices.
 
 ## First milestone
 
@@ -36,8 +41,3 @@ Every scan is also saved to `data/sentinel.db` so Sentinel can remember when a d
 ## Team safety rule
 
 Do not run the scanner against the internet, another person's network, or a subnet without permission. Use the router's device list as the reference when verifying results.
-=======
-# sentinel
-# Initial Goal: The Sentinel scans your network to see what devices are on it and lists them for the user to view. The user can designate certain devices as familiar or safe, then turn on a setting where the user is notified about any new or unfamiliar devices, and provide the user with instructions to remove them from the network if they'd like
-# Stretch Goal: Add built-in tools to deal with unfamiliar devices
->>>>>>> eb30d080f0b13669b2c8f759703e4d43d3d089b0
