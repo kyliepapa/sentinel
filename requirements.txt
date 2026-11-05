@@ -1,0 +1,2 @@
+# The scanner uses Nmap plus Python's standard library.
+# Install Nmap separately from https://nmap.org/download.html
