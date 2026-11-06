@@ -28,6 +28,16 @@ pip install -r requirements.txt
 
 ## Run
 
+Start the local dashboard from the `sentinel` folder:
+
+```powershell
+py server.py
+```
+
+Then open <http://127.0.0.1:8000>. The dashboard reads the devices saved in
+`data/sentinel.db` through the `/api/devices` endpoint. Run the scanner in a
+second terminal when you want to update the database, then click **Refresh data**.
+
 Only scan a private network you own or have permission to monitor:
 
 ```powershell
