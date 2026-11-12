@@ -4,6 +4,29 @@ import sqlite3
 from pathlib import Path
 
 
+def normalize_mac(mac: str | None) -> str | None:
+    """Store MAC addresses consistently and keep missing values as NULL."""
+    if not mac:
+        return None
+    return mac.strip().upper()
+
+
+def remove_duplicate_unknowns(connection: sqlite3.Connection) -> None:
+    """Keep one row per IP when older scans saved a missing MAC repeatedly."""
+    connection.execute(
+        """
+        DELETE FROM devices
+        WHERE mac IS NULL
+          AND id NOT IN (
+              SELECT MIN(id)
+              FROM devices
+              WHERE mac IS NULL
+              GROUP BY ip
+          )
+        """
+    )
+
+
 def save_scan(database_path: str, devices: list[dict[str, str]], scanned_at: str) -> None:
     """Create the table if needed and save the devices found in one scan."""
     Path(database_path).parent.mkdir(parents=True, exist_ok=True)
@@ -21,23 +44,45 @@ def save_scan(database_path: str, devices: list[dict[str, str]], scanned_at: str
             )
             """
         )
+        connection.execute("CREATE INDEX IF NOT EXISTS idx_devices_mac ON devices(mac)")
+        remove_duplicate_unknowns(connection)
+
         for device in devices:
-            connection.execute(
-                """
-                INSERT INTO devices (ip, mac, role, first_seen, last_seen)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT(ip, mac) DO UPDATE SET
-                    role = excluded.role,
-                    last_seen = excluded.last_seen
-                """,
-                (
-                    device["ip"],
-                    device.get("mac"),
-                    device.get("role", "unknown device"),
-                    scanned_at,
-                    scanned_at,
-                ),
-            )
+            ip = device["ip"]
+            mac = normalize_mac(device.get("mac"))
+            role = device.get("role", "unknown device")
+
+            # A MAC address is the best identity. If it is unavailable,
+            # reuse the existing unknown row for that IP instead of creating
+            # another duplicate on every scan.
+            if mac:
+                existing = connection.execute(
+                    "SELECT id FROM devices WHERE mac = ? ORDER BY id LIMIT 1",
+                    (mac,),
+                ).fetchone()
+            else:
+                existing = connection.execute(
+                    "SELECT id FROM devices WHERE ip = ? AND mac IS NULL ORDER BY id LIMIT 1",
+                    (ip,),
+                ).fetchone()
+
+            if existing:
+                connection.execute(
+                    """
+                    UPDATE devices
+                    SET ip = ?, mac = ?, role = ?, last_seen = ?
+                    WHERE id = ?
+                    """,
+                    (ip, mac, role, scanned_at, existing[0]),
+                )
+            else:
+                connection.execute(
+                    """
+                    INSERT INTO devices (ip, mac, role, first_seen, last_seen)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (ip, mac, role, scanned_at, scanned_at),
+                )
 
 
 def list_devices(database_path: str) -> list[dict[str, str]]:
