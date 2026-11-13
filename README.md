@@ -37,6 +37,8 @@ py server.py
 Then open <http://127.0.0.1:8000>. The dashboard reads the devices saved in
 `data/sentinel.db` through the `/api/devices` endpoint. Run the scanner in a
 second terminal when you want to update the database, then click **Refresh data**.
+The dashboard displays only devices from the most recent scan; older device
+records remain in the database for history but are not shown as current.
 
 Only scan a private network you own or have permission to monitor:
 

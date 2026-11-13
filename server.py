@@ -34,11 +34,19 @@ class SentinelHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def devices_payload(self) -> dict:
-        devices = list_devices(str(DATABASE)) if DATABASE.exists() else []
-        scanned_at = max((device["last_seen"] for device in devices), default=None)
+        all_devices = list_devices(str(DATABASE)) if DATABASE.exists() else []
+        scanned_at = max((device["last_seen"] for device in all_devices), default=None)
+        # The database keeps history, but the dashboard should represent the
+        # latest scan only. scanner.py gives every device in one scan the same
+        # last_seen timestamp, so that timestamp identifies the current batch.
+        devices = [
+            device for device in all_devices
+            if scanned_at is not None and device["last_seen"] == scanned_at
+        ]
         return {
             "devices": devices,
             "scanned_at": scanned_at,
+            "current_scan_only": True,
             "source": "database.py",
         }
 
