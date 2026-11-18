@@ -119,7 +119,7 @@ async function loadDevices() {
   } catch (error) {
     state.devices = [];
     state.scannedAt = null;
-    state.loadError = "Run `py server.py` from the sentinel folder, then try again.";
+    state.loadError = "Run `py -m app.server` from the project root, then try again.";
   }
   renderStats();
   renderDevices();

@@ -1,0 +1,6 @@
+.venv/
+.venv-project/
+__pycache__/
+*.py[cod]
+.env
+data/*.db

@@ -1,2 +1,6 @@
 # The scanner uses Nmap plus Python's standard library.
+# The backend stores scan history in MySQL.
+mysql-connector-python
+python-dotenv
+
 # Install Nmap separately from https://nmap.org/download.html

@@ -7,7 +7,7 @@ import subprocess
 from datetime import datetime, timezone
 from xml.etree import ElementTree
 
-from database import save_scan
+from .database import save_scan
 
 
 def validate_private_subnet(value: str) -> str:
@@ -74,7 +74,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Discover devices on a private subnet")
     parser.add_argument("subnet", type=validate_private_subnet)
     parser.add_argument("--timeout", type=int, default=5)
-    parser.add_argument("--database", default="data/sentinel.db")
     for role in ("router", "camera", "laptop"):
         parser.add_argument(f"--{role}-ip", help=f"known {role} IP address")
         parser.add_argument(f"--{role}-mac", help=f"known {role} MAC address")
@@ -90,11 +89,11 @@ def main() -> None:
     }
     label_devices(devices, known)
     scanned_at = datetime.now(timezone.utc).isoformat()
-    save_scan(args.database, devices, scanned_at)
+    save_scan(devices, scanned_at)
     print(json.dumps({
         "subnet": args.subnet,
         "discovered_at": scanned_at,
-        "database": args.database,
+        "database": "mysql",
         "devices": devices,
     }, indent=2))
 

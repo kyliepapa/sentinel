@@ -6,11 +6,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from database import list_devices
+from .database import list_devices
 
 
-ROOT = Path(__file__).parent
-DATABASE = ROOT / "data" / "sentinel.db"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+FRONTEND_ROOT = PROJECT_ROOT / "frontend"
 
 
 class SentinelHandler(BaseHTTPRequestHandler):
@@ -21,8 +21,8 @@ class SentinelHandler(BaseHTTPRequestHandler):
             return
 
         relative = "index.html" if path == "/" else path.lstrip("/")
-        file_path = (ROOT / relative).resolve()
-        if ROOT not in file_path.parents or not file_path.is_file():
+        file_path = (FRONTEND_ROOT / relative).resolve()
+        if FRONTEND_ROOT not in file_path.parents or not file_path.is_file():
             self.send_error(404, "Not found")
             return
         content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
@@ -34,7 +34,7 @@ class SentinelHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def devices_payload(self) -> dict:
-        all_devices = list_devices(str(DATABASE)) if DATABASE.exists() else []
+        all_devices = list_devices()
         scanned_at = max((device["last_seen"] for device in all_devices), default=None)
         # The database keeps history, but the dashboard should represent the
         # latest scan only. scanner.py gives every device in one scan the same
